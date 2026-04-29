@@ -1,17 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --font-serif: var(--font-playfair), "Cormorant Garamond", Georgia, serif;
+  --font-serif: var(--font-serif-display), Georgia, serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
   --font-tech: var(--font-tech-mono), ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
 
   --color-saffron: #E97724;
   --color-saffron-dark: #C8631A;
-  --color-saffron-soft: #F8E6D2;
-  --color-saffron-softer: #FBF0E0;
   --color-saffron-ink: #B05818;
-  --color-maroon: #8B2C2C;
   --color-cream: #FDF8F1;
   --color-beige: #F5EBDC;
   --color-gold: #C9A961;
@@ -28,8 +25,8 @@ html, body {
   background-color: #FDF8F1;
   color: #2A2A2A;
   font-family: var(--font-sans);
-  font-size: 17px;
-  line-height: 1.5;
+  font-size: 18px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -41,8 +38,8 @@ h1, h2, h3, h4 {
 
 .eyebrow {
   font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #6B6B6B;
 }
@@ -50,24 +47,6 @@ h1, h2, h3, h4 {
 .eyebrow-accent {
   color: #B05818;
 }
-
-.divider-gold {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #C9A961, transparent);
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.fade-up {
-  animation: fadeUp 0.6s ease-out both;
-}
-
-.fade-up-delay-1 { animation-delay: 0.1s; }
-.fade-up-delay-2 { animation-delay: 0.2s; }
-.fade-up-delay-3 { animation-delay: 0.3s; }
 
 .card-lift {
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
@@ -84,6 +63,7 @@ h1, h2, h3, h4 {
   padding: 0.75rem 2rem;
   font-weight: 500;
   transition: background-color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
 }
 .btn-saffron:hover { background-color: #C8631A; }
 .btn-saffron:disabled {
@@ -106,6 +86,46 @@ h1, h2, h3, h4 {
   color: #FFFFFF;
 }
 
+.btn-cancel {
+  background-color: transparent;
+  color: #6B6B6B;
+  border: 1px solid #D9CDB6;
+  border-radius: 9999px;
+  padding: 0.75rem 2rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+}
+.btn-cancel:hover {
+  background-color: #FDF8F1;
+  color: #2A2A2A;
+  border-color: #B5A790;
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: #2A2A2A;
+  border: 1px solid #EADFCB;
+  border-radius: 9999px;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.btn-ghost:hover {
+  background-color: #FDF8F1;
+  border-color: #C9A961;
+}
+.btn-ghost.is-success {
+  color: #6E8551;
+  border-color: #B6C39A;
+  background-color: #F2F5EB;
+}
+
 .input-aol {
   width: 100%;
   background-color: #FFFFFF;
@@ -121,4 +141,148 @@ h1, h2, h3, h4 {
   outline: none;
   border-color: #E97724;
   box-shadow: 0 0 0 4px rgba(233, 119, 36, 0.12);
+}
+
+/* ─── Score bands on PhoneCard ─────────────────────────────── */
+.card-band {
+  position: relative;
+  overflow: hidden;
+}
+.card-band::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: transparent;
+  border-top-left-radius: inherit;
+  border-bottom-left-radius: inherit;
+}
+.card-band.is-premium::before {
+  background: linear-gradient(180deg, #4FA85F, #2F7A3A);
+}
+.card-band.is-strong::before {
+  background: linear-gradient(180deg, #E97724, #B05818);
+}
+.card-band.is-standard::before {
+  background: #EADFCB;
+}
+.card-band.is-premium {
+  box-shadow: 0 4px 18px -10px rgba(47, 122, 58, 0.45);
+}
+
+.premium-pip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #FBF0E0, #F4E2BD);
+  border: 1px solid #E5C98A;
+  color: #8C6B1E;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.master-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #FBF0E0, #F4E2BD);
+  border: 1px solid #E5C98A;
+  color: #8C6B1E;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-indent: 0.16em;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+}
+
+/* ─── Inline tooltip ──────────────────────────────────────── */
+.tip-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid #C9A961;
+  color: #B05818;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  line-height: 1;
+  background-color: #FDF8F1;
+  cursor: help;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  vertical-align: middle;
+}
+.tip-trigger:hover,
+.tip-trigger:focus-visible {
+  background-color: #E97724;
+  color: #FFFFFF;
+  outline: none;
+}
+.tip-bubble {
+  position: absolute;
+  z-index: 40;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 260px;
+  padding: 0.6rem 0.75rem;
+  background: #2A2A2A;
+  color: #FDF8F1;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  border-radius: 0.6rem;
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 400;
+}
+.tip-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #2A2A2A;
+}
+
+/* ─── Hero mandala backdrop ───────────────────────────────── */
+.hero-mandala {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+}
+.hero-mandala svg {
+  width: min(640px, 90%);
+  height: auto;
+  opacity: 0.10;
+}
+
+/* ─── Reduced-motion preferences ──────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .card-lift,
+  .card-lift:hover {
+    transition: none !important;
+    transform: none !important;
+  }
 }

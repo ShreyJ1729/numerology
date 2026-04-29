@@ -3,22 +3,28 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function isOriginAllowed(origin: string | null): boolean {
-  if (!origin) return false;
+function isRequestAllowed(req: NextRequest): boolean {
+  const origin = req.headers.get("origin");
+  const secFetchSite = req.headers.get("sec-fetch-site");
+
+  if (!origin) {
+    return secFetchSite === null || secFetchSite === "same-origin" || secFetchSite === "none";
+  }
+
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+  try {
+    if (host && new URL(origin).host === host) return true;
+  } catch {}
+
   const allowed = (process.env.ALLOWED_ORIGINS || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
-  if (allowed.length === 0) {
-    // Fallback for local dev only.
-    return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
-  }
   return allowed.includes(origin);
 }
 
 export async function GET(req: NextRequest) {
-  const origin = req.headers.get("origin");
-  if (!isOriginAllowed(origin)) {
+  if (!isRequestAllowed(req)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

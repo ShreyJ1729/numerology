@@ -13,6 +13,7 @@ import {
   type TwilioNumber,
 } from "@/lib/numerology";
 import PhoneCard from "./PhoneCard";
+import Tooltip from "./Tooltip";
 
 type Status = "idle" | "searching" | "done" | "error" | "cancelled";
 
@@ -141,7 +142,9 @@ export default function PhoneSearch() {
 
   const statusLabel =
     status === "searching"
-      ? `Searching ${currentAnchor || "…"}`
+      ? currentAnchor
+        ? `Trying numbers containing ${currentAnchor}`
+        : "Preparing search…"
       : status === "done"
       ? "Search complete"
       : status === "cancelled"
@@ -180,8 +183,16 @@ export default function PhoneSearch() {
         )}
 
         <div className="grid grid-cols-2 gap-3">
-          <DerivedPill label="Mulank (BN)" value={bn} />
-          <DerivedPill label="Bhagyank (DN)" value={dn} />
+          <DerivedPill
+            label="Mulank (BN)"
+            value={bn}
+            tooltip="Mulank (Birth Number) is the digital root of your day of birth, reduced to 1–9. It reflects your core personality vibration."
+          />
+          <DerivedPill
+            label="Bhagyank (DN)"
+            value={dn}
+            tooltip="Bhagyank (Destiny Number) is the digital root of your full date of birth (DD-MM-YYYY). It reflects the path your life is drawn toward."
+          />
         </div>
 
         <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -190,20 +201,22 @@ export default function PhoneSearch() {
               onClick={startSearch}
               disabled={!inputsValid}
               className="btn-saffron"
+              aria-label="Begin phone number search"
             >
-              Begin Search →
+              Search<span aria-hidden="true"> →</span>
             </button>
           ) : (
             <button
               onClick={cancelSearch}
-              className="px-7 py-3 rounded-full font-medium text-white bg-[#8B2C2C] hover:bg-[#6E2222] transition cursor-pointer"
+              className="btn-cancel"
+              aria-label="Cancel ongoing search"
             >
-              Cancel
+              Cancel search
             </button>
           )}
           {inputsValid && bn === dn && (
-            <div className="text-xs italic text-[#8B2C2C] font-serif">
-              BN = DN; only one anchor pattern will be searched.
+            <div className="text-xs text-[#6B6B6B]">
+              BN equals DN — only one anchor pattern will be searched.
             </div>
           )}
         </div>
@@ -225,10 +238,18 @@ export default function PhoneSearch() {
               {status === "error" && (
                 <span className="inline-block w-2 h-2 rounded-full bg-[#8B2C2C] shrink-0" />
               )}
-              <span className="text-[#2A2A2A] font-medium truncate">{statusLabel}</span>
+              <span className="text-[#2A2A2A] font-medium truncate flex items-center">
+                {statusLabel}
+                {status === "searching" && (
+                  <Tooltip label="Anchor">
+                    An anchor is a short digit pattern built from your Mulank ({bn}) and
+                    Bhagyank ({dn}). Available numbers containing it are then fetched.
+                  </Tooltip>
+                )}
+              </span>
             </div>
             <div className="text-[#6B6B6B] tabular-nums text-xs whitespace-nowrap">
-              {progress.current}/{progress.total} · {seenCount} seen ·{" "}
+              {seenCount} seen ·{" "}
               <span className="text-[#B05818] font-semibold">{matches.length} matches</span>
             </div>
           </div>
@@ -238,24 +259,41 @@ export default function PhoneSearch() {
               style={{ width: `${pct}%` }}
             />
           </div>
+          {status === "searching" && (
+            <p className="text-[11px] text-[#6B6B6B] leading-snug max-w-[42em]">
+              Anchors are digit patterns of length 5 to 2 made from your Mulank and
+              Bhagyank. We sweep from longest to shortest so the rarest, strongest
+              matches surface first.
+            </p>
+          )}
           {error && (
-            <div className="text-sm text-[#8B2C2C] bg-[#8B2C2C]/5 border border-[#8B2C2C]/20 rounded-xl p-3 font-serif italic">
+            <div className="text-sm text-[#8B2C2C] bg-white border border-[#EADFCB] rounded-xl p-3">
               {error}
             </div>
           )}
         </div>
       )}
 
-      {matches.length > 0 && bn !== null && dn !== null && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-          {matches.map((m) => (
-            <PhoneCard key={m.phone_number} match={m} bn={bn} dn={dn} />
-          ))}
-        </div>
-      )}
+      {matches.length > 0 && bn !== null && dn !== null && (() => {
+        const topMatches = matches.slice(0, 24);
+        const maxPct = Math.max(...topMatches.map((m) => m.bn_dn_pct));
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {topMatches.map((m) => (
+              <PhoneCard
+                key={m.phone_number}
+                match={m}
+                bn={bn}
+                dn={dn}
+                isTopTier={m.bn_dn_pct === maxPct}
+              />
+            ))}
+          </div>
+        );
+      })()}
 
       {status === "done" && matches.length === 0 && (
-        <div className="text-center py-12 text-[#6B6B6B] font-serif italic">
+        <div className="py-12 text-[#6B6B6B]">
           No matches passed both filters.
         </div>
       )}
@@ -263,11 +301,22 @@ export default function PhoneSearch() {
   );
 }
 
-function DerivedPill({ label, value }: { label: string; value: number | null }) {
+function DerivedPill({
+  label,
+  value,
+  tooltip,
+}: {
+  label: string;
+  value: number | null;
+  tooltip?: string;
+}) {
   return (
-    <div className="bg-[#FBF0E0] border border-[#F0D9B8] rounded-xl px-4 py-3 flex items-baseline justify-between">
-      <div className="text-[10px] tracking-[0.18em] uppercase font-semibold text-[#B05818]/80">
+    <div className="bg-[#FDF8F1] border border-[#EADFCB] rounded-xl px-4 py-3 flex items-baseline justify-between">
+      <div className="text-[10px] tracking-[0.14em] uppercase font-medium text-[#6B6B6B] flex items-center">
         {label}
+        {tooltip && (
+          <Tooltip label={label}>{tooltip}</Tooltip>
+        )}
       </div>
       <div className="font-serif text-2xl text-[#B05818] tabular-nums leading-none">
         {value ?? "—"}

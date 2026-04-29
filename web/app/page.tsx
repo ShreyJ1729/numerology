@@ -4,58 +4,68 @@ import PhoneSearch from "@/components/PhoneSearch";
 export default function Home() {
   return (
     <main className="min-h-screen">
+      <a
+        href="#dashboard"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-[#FDF8F1] focus:border focus:border-[#EADFCB] focus:rounded-md focus:px-3 focus:py-2 focus:text-[#2A2A2A]"
+      >
+        Skip to tools
+      </a>
+
       <nav className="sticky top-0 z-30 backdrop-blur bg-[#FDF8F1]/80 border-b border-[#EADFCB]">
         <div className="max-w-7xl mx-auto px-8 py-5 flex items-center">
-          <div className="flex items-baseline gap-2">
-            <span className="font-serif italic text-lg text-[#6B6B6B] tracking-tight">
-              Art of
-            </span>
-            <span className="text-2xl font-serif tracking-tight text-[#2A2A2A]">
-              <span className="text-[#B05818]">Numero</span>logy
-            </span>
-          </div>
+          <span className="text-2xl font-serif text-[#2A2A2A] tracking-tight">
+            Art of <span className="text-[#B05818]">Numerology</span>
+          </span>
         </div>
       </nav>
 
-      <section className="max-w-7xl mx-auto px-8 pt-10 pb-8 fade-up">
-        <div className="text-center max-w-6xl mx-auto">
-          <div className="eyebrow mb-3">
-            <span className="eyebrow-accent">Vedic</span> &nbsp;Numerology &nbsp;Studio
-          </div>
-          <h1 className="text-4xl md:text-6xl leading-[1.05] text-[#2A2A2A] font-medium">
-            Find numbers in <span className="text-[#B05818] italic">harmony</span> with your essence
-          </h1>
-          <p className="text-[#6B6B6B] mt-4 text-lg leading-relaxed max-w-2xl mx-auto">
-            Calculate the vibration of your name and discover phone numbers
-            aligned with your Mulank and Bhagyank — guided by the timeless
-            wisdom of Vedic numerology.
-          </p>
-          <div className="mt-5 flex justify-center">
-            <div className="divider-gold w-24" />
-          </div>
+      <section className="relative max-w-7xl mx-auto px-8 pt-12 pb-6 overflow-hidden">
+        <div className="hero-mandala" aria-hidden="true">
+          <HeroMandala />
         </div>
+        <div className="relative max-w-3xl">
+          <h1 className="text-4xl md:text-5xl text-[#2A2A2A] font-normal leading-tight">
+            Numerology for names and phone numbers.
+          </h1>
+          <p className="text-[#6B6B6B] mt-5 text-lg leading-relaxed max-w-[38em]">
+            Compute your Mulank and Bhagyank, then find phone numbers that align.
+          </p>
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-8 pb-10">
+        <p className="text-[#2A2A2A] leading-relaxed max-w-[38em]">
+          In Vedic numerology, every name and date carries a numeric vibration.
+          Your <strong className="font-semibold">Mulank</strong> is the digital
+          root of your day of birth (1–9), reflecting your core nature. Your{" "}
+          <strong className="font-semibold">Bhagyank</strong> reduces your full
+          date of birth to a single digit, marking the path your life is drawn
+          toward. The tools below compute your{" "}
+          <strong className="font-semibold">name number</strong> and find phone
+          numbers whose digits resonate with these two roots.
+        </p>
       </section>
 
       <section id="dashboard" className="max-w-7xl mx-auto px-8 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          <div id="name" className="lg:col-span-2 fade-up fade-up-delay-1">
+          <div id="name" className="lg:col-span-2">
             <PanelHeader
-              eyebrow="Step One"
-              title="Name Vibration"
-              caption="Reveal the resonance carried by your given name."
+              index="1."
+              title="Name number"
+              caption="The single-digit value of your name."
             />
-            <div className="bg-white border border-[#EADFCB] rounded-3xl p-7 shadow-[0_8px_30px_-12px_rgba(139,44,44,0.08)]">
+            <div className="bg-white border border-[#EADFCB] rounded-2xl p-7">
               <NameCalculator />
             </div>
           </div>
 
-          <div id="phone" className="lg:col-span-3 fade-up fade-up-delay-2">
+          <div id="phone" className="lg:col-span-3">
             <PanelHeader
-              eyebrow="Step Two"
-              title="Auspicious Numbers"
-              caption="Search Twilio inventory for numbers matching your Mulank & Bhagyank."
+              index="2."
+              title="Phone numbers"
+              caption="Available numbers that match your Mulank and Bhagyank."
             />
-            <div className="bg-white border border-[#EADFCB] rounded-3xl p-7 shadow-[0_8px_30px_-12px_rgba(139,44,44,0.08)]">
+            <div className="bg-white border border-[#EADFCB] rounded-2xl p-7">
               <PhoneSearch />
             </div>
           </div>
@@ -63,17 +73,19 @@ export default function Home() {
       </section>
 
       <footer id="about" className="bg-[#F5EBDC] border-t border-[#EADFCB]">
-        <div className="max-w-7xl mx-auto px-8 py-14 text-center">
-          <div className="eyebrow mb-3">
-            <span className="eyebrow-accent">Crafted</span> &nbsp;with &nbsp;intention
-          </div>
-          <p className="text-[#6B6B6B] max-w-xl mx-auto leading-relaxed text-sm">
-            Built on Vedic letter mappings and Twilio's phone-number catalog.
-            Numbers are tools — wisdom is yours.
+        <div className="max-w-7xl mx-auto px-8 py-10">
+          <p className="text-[#6B6B6B] text-sm">
+            By{" "}
+            <a
+              href="https://shreyjoshi.com"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="text-[#B05818] hover:text-[#8B2C2C] underline underline-offset-4"
+            >
+              Shrey Joshi
+            </a>
+            .
           </p>
-          <div className="mt-6 flex justify-center">
-            <div className="divider-gold w-16" />
-          </div>
         </div>
       </footer>
     </main>
@@ -81,22 +93,114 @@ export default function Home() {
 }
 
 function PanelHeader({
-  eyebrow,
+  index,
   title,
   caption,
 }: {
-  eyebrow: string;
+  index: string;
   title: string;
   caption: string;
 }) {
   return (
     <div className="mb-5 px-1">
-      <div className="eyebrow mb-2">
-        <span className="eyebrow-accent">{eyebrow.split(" ")[0]}</span>{" "}
-        {eyebrow.split(" ").slice(1).join(" ")}
+      <div className="flex items-baseline gap-2">
+        <span className="text-[#B05818] font-serif text-xl tabular-nums">
+          {index}
+        </span>
+        <h2 className="text-3xl text-[#2A2A2A] font-normal">{title}</h2>
       </div>
-      <h2 className="text-3xl text-[#2A2A2A] font-medium">{title}</h2>
-      <p className="text-[#6B6B6B] mt-1.5 text-sm">{caption}</p>
+      <p className="text-[#6B6B6B] mt-1.5 text-sm max-w-[38em]">{caption}</p>
     </div>
+  );
+}
+
+function HeroMandala() {
+  const digits = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+  const radius = 240;
+  return (
+    <svg viewBox="-300 -300 600 600" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="mandalaGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#E97724" stopOpacity="0.6" />
+          <stop offset="60%" stopColor="#C9A961" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#FDF8F1" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+
+      <circle cx="0" cy="0" r="280" fill="url(#mandalaGlow)" />
+
+      {[60, 110, 170, 230].map((r) => (
+        <circle
+          key={r}
+          cx="0"
+          cy="0"
+          r={r}
+          fill="none"
+          stroke="#C9A961"
+          strokeWidth="0.6"
+        />
+      ))}
+
+      {Array.from({ length: 12 }).map((_, i) => {
+        const a = (i / 12) * Math.PI * 2;
+        const x = Math.cos(a) * 250;
+        const y = Math.sin(a) * 250;
+        return (
+          <line
+            key={`spoke-${i}`}
+            x1="0"
+            y1="0"
+            x2={x}
+            y2={y}
+            stroke="#C9A961"
+            strokeWidth="0.4"
+            strokeOpacity="0.5"
+          />
+        );
+      })}
+
+      {Array.from({ length: 8 }).map((_, i) => {
+        const a = (i / 8) * Math.PI * 2;
+        const x = Math.cos(a) * 130;
+        const y = Math.sin(a) * 130;
+        return (
+          <ellipse
+            key={`petal-${i}`}
+            cx={x}
+            cy={y}
+            rx="50"
+            ry="22"
+            transform={`rotate(${(i / 8) * 360} ${x} ${y})`}
+            fill="none"
+            stroke="#E97724"
+            strokeWidth="0.7"
+            strokeOpacity="0.55"
+          />
+        );
+      })}
+
+      {digits.map((d, i) => {
+        const a = (i / digits.length) * Math.PI * 2 - Math.PI / 2;
+        const x = Math.cos(a) * radius;
+        const y = Math.sin(a) * radius;
+        return (
+          <text
+            key={d}
+            x={x}
+            y={y}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fontFamily="Playfair Display, Georgia, serif"
+            fontSize="22"
+            fill="#B05818"
+            fillOpacity="0.7"
+          >
+            {d}
+          </text>
+        );
+      })}
+
+      <circle cx="0" cy="0" r="6" fill="#B05818" fillOpacity="0.6" />
+    </svg>
   );
 }
