@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { parsePhoneNumber } from "libphonenumber-js/min";
 import { Match } from "@/lib/numerology";
 
 type Band = "premium" | "strong" | "standard";
@@ -25,7 +26,15 @@ export default function PhoneCard({
   const [copied, setCopied] = useState(false);
 
   const bnDn = new Set([String(bn), String(dn)]);
-  const display = match.friendly_name || match.phone_number;
+  const display = useMemo(() => {
+    try {
+      const parsed = parsePhoneNumber(match.phone_number);
+      if (parsed) return parsed.formatInternational();
+    } catch {
+      // fall through
+    }
+    return match.phone_number;
+  }, [match.phone_number]);
   const band = classifyBand(match, isTopTier);
   const pctRounded = Math.round(match.bn_dn_pct * 100);
   const isPremium = band === "premium";

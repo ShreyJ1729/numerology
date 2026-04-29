@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isRequestAllowed, getTwilioAuth, twilioLocalUrl } from "@/lib/twilio-server";
+import {
+  isRequestAllowed,
+  getTwilioAuth,
+  twilioAvailableUrl,
+  type TwilioNumberType,
+} from "@/lib/twilio-server";
+import { getCountrySpec } from "@/lib/numerology";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const ALLOWED_TYPES = new Set<TwilioNumberType>([
+  "Local",
+  "Mobile",
+  "National",
+  "TollFree",
+]);
 
 export async function GET(req: NextRequest) {
   if (!isRequestAllowed(req)) {
@@ -13,9 +26,23 @@ export async function GET(req: NextRequest) {
   const country = searchParams.get("country") || "US";
   const contains = searchParams.get("contains");
   const pageSize = searchParams.get("pageSize") || "50";
+  const typeRaw = searchParams.get("type");
 
   if (!contains) {
     return NextResponse.json({ error: "contains parameter is required" }, { status: 400 });
+  }
+
+  let type: TwilioNumberType;
+  if (typeRaw) {
+    if (!ALLOWED_TYPES.has(typeRaw as TwilioNumberType)) {
+      return NextResponse.json(
+        { error: `type must be one of ${Array.from(ALLOWED_TYPES).join(", ")}` },
+        { status: 400 }
+      );
+    }
+    type = typeRaw as TwilioNumberType;
+  } else {
+    type = getCountrySpec(country)?.numberTypes[0] ?? "Local";
   }
 
   const auth = getTwilioAuth();
@@ -23,9 +50,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: auth.error }, { status: auth.status });
   }
 
-  const url = twilioLocalUrl(
+  const url = twilioAvailableUrl(
     auth.sid,
     country,
+    type,
     new URLSearchParams({ Contains: contains, PageSize: pageSize })
   );
 

@@ -31,23 +31,58 @@ export function nameNumber(name: string): NameResult {
   return { total, root: reduceToRoot(total), pairs };
 }
 
-export const COUNTRY_DIAL_PREFIX: Record<string, string> = {
-  US: "1", CA: "1", GB: "44", IN: "91", AU: "61",
-  DE: "49", FR: "33", MX: "52", BR: "55", JP: "81",
+// Twilio AvailablePhoneNumbers resource types we query against. Most non-US
+// countries do not stock Local inventory; their numbers live under Mobile or
+// National. Order matters — earlier types are probed first.
+export type TwilioNumberType =
+  | "Local"
+  | "Mobile"
+  | "National"
+  | "TollFree";
+
+export type CountrySpec = {
+  code: string;
+  name: string;
+  dialPrefix: string;
+  // Acceptable domestic-number length range (digits remaining after the dial
+  // prefix is stripped from E.164). domesticMin doubles as the pattern
+  // generation length: substring matches against longer numbers still hit.
+  domesticMin: number;
+  domesticMax: number;
+  numberTypes: TwilioNumberType[];
 };
 
-export const COUNTRY_OPTIONS: { code: string; name: string }[] = [
-  { code: "US", name: "United States" },
-  { code: "CA", name: "Canada" },
-  { code: "GB", name: "United Kingdom" },
-  { code: "IN", name: "India" },
-  { code: "AU", name: "Australia" },
-  { code: "DE", name: "Germany" },
-  { code: "FR", name: "France" },
-  { code: "MX", name: "Mexico" },
-  { code: "BR", name: "Brazil" },
-  { code: "JP", name: "Japan" },
-];
+// numberTypes are the AvailablePhoneNumbers subresources Twilio actually
+// exposes for the country. Probing a non-existent subresource returns a 20404
+// (e.g. AU/National doesn't exist), wasting queries — values below were
+// cross-checked against Twilio's per-country regulatory pages 2026-04. The
+// route layer also short-circuits on 20404 at runtime, so a wrong entry here
+// degrades cleanly instead of breaking the search.
+export const COUNTRY_SPECS: Record<string, CountrySpec> = {
+  US: { code: "US", name: "United States",  dialPrefix: "1",  domesticMin: 10, domesticMax: 10, numberTypes: ["Local", "TollFree"] },
+  CA: { code: "CA", name: "Canada",         dialPrefix: "1",  domesticMin: 10, domesticMax: 10, numberTypes: ["Local", "TollFree"] },
+  GB: { code: "GB", name: "United Kingdom", dialPrefix: "44", domesticMin: 10, domesticMax: 10, numberTypes: ["Local", "Mobile", "National", "TollFree"] },
+  IN: { code: "IN", name: "India",          dialPrefix: "91", domesticMin: 10, domesticMax: 10, numberTypes: ["Mobile"] },
+  AU: { code: "AU", name: "Australia",      dialPrefix: "61", domesticMin: 9,  domesticMax: 9,  numberTypes: ["Local", "Mobile"] },
+  DE: { code: "DE", name: "Germany",        dialPrefix: "49", domesticMin: 10, domesticMax: 11, numberTypes: ["Local", "Mobile"] },
+  FR: { code: "FR", name: "France",         dialPrefix: "33", domesticMin: 9,  domesticMax: 9,  numberTypes: ["Local", "Mobile"] },
+  MX: { code: "MX", name: "Mexico",         dialPrefix: "52", domesticMin: 10, domesticMax: 10, numberTypes: ["Local", "Mobile"] },
+  BR: { code: "BR", name: "Brazil",         dialPrefix: "55", domesticMin: 10, domesticMax: 11, numberTypes: ["Mobile", "Local"] },
+  JP: { code: "JP", name: "Japan",          dialPrefix: "81", domesticMin: 9,  domesticMax: 10, numberTypes: ["Local"] },
+};
+
+export function getCountrySpec(code: string): CountrySpec | null {
+  return COUNTRY_SPECS[code] ?? null;
+}
+
+export const COUNTRY_OPTIONS: { code: string; name: string }[] = Object.values(
+  COUNTRY_SPECS
+).map(({ code, name }) => ({ code, name }));
+
+// Back-compat: a few callers still want the bare prefix map.
+export const COUNTRY_DIAL_PREFIX: Record<string, string> = Object.fromEntries(
+  Object.values(COUNTRY_SPECS).map((s) => [s.code, s.dialPrefix])
+);
 
 export function mulankFromDob(dob: string): number | null {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dob);
@@ -73,9 +108,10 @@ export function digitalRoot(digits: string): number {
 }
 
 export function stripCountryCode(e164: string, country: string): string {
-  const prefix = COUNTRY_DIAL_PREFIX[country] ?? "1";
+  const spec = COUNTRY_SPECS[country];
   const bare = e164.replace(/^\+/, "");
-  return bare.startsWith(prefix) ? bare.slice(prefix.length) : bare;
+  if (!spec) return bare;
+  return bare.startsWith(spec.dialPrefix) ? bare.slice(spec.dialPrefix.length) : bare;
 }
 
 export function generateAnchors(bn: number, dn: number, length: number): string[] {

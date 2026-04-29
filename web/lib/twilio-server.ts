@@ -58,10 +58,23 @@ export function getTwilioAuth(): TwilioAuthResult {
 
 export const TWILIO_API_BASE = "https://api.twilio.com";
 
+// Twilio AvailablePhoneNumbers resource type. Local for US/CA, Mobile/National
+// for most international countries.
+export type TwilioNumberType = "Local" | "Mobile" | "National" | "TollFree";
+
+export function twilioAvailableUrl(
+  sid: string,
+  country: string,
+  type: TwilioNumberType,
+  params: URLSearchParams
+): string {
+  return `${TWILIO_API_BASE}/2010-04-01/Accounts/${sid}/AvailablePhoneNumbers/${country}/${type}.json?${params.toString()}`;
+}
+
 export function twilioLocalUrl(
   sid: string,
   country: string,
   params: URLSearchParams
 ): string {
-  return `${TWILIO_API_BASE}/2010-04-01/Accounts/${sid}/AvailablePhoneNumbers/${country}/Local.json?${params.toString()}`;
+  return twilioAvailableUrl(sid, country, "Local", params);
 }
