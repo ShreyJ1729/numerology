@@ -121,17 +121,8 @@ export function countPatterns(
 //
 // `generatePatternsAtK` yields all patterns at a single density tier k.
 // `generatePatterns` yields k DESC tier-by-tier (k = N..kMin).
-// `generatePatternsInterleaved` round-robins across k tiers (k=N first within
-// each cycle), so a worker pool consuming this generator probes every density
-// level immediately rather than burning the whole budget on the rarest tier.
-//
-// Inventory reality: at k=N the patterns are exact full-length numbers, almost
-// all of which return zero matches from Twilio's available pool. Only after
-// thousands of those empties would a non-interleaved scan reach a productive
-// tier. Interleaved emission keeps the pipeline saturated with productive
-// queries while still exposing the rarest-first signal via local sorting.
 
-function* generatePatternsAtK(
+export function* generatePatternsAtK(
   bn: number,
   dn: number,
   k: number,
@@ -195,37 +186,6 @@ export function* generatePatterns(
   }
 }
 
-export function* generatePatternsInterleaved(
-  bn: number,
-  dn: number,
-  opts?: { kMin?: number; numberLength?: number }
-): Generator<SearchPattern> {
-  validateBnDn(bn, dn);
-  const numberLength = opts?.numberLength ?? 10;
-  const kMin = opts?.kMin ?? 5;
-  validateOpts(numberLength, kMin);
-
-  // Tiers in priority order: k=N first within each cycle.
-  type Tier = Generator<SearchPattern>;
-  const tiers: Tier[] = [];
-  for (let k = numberLength; k >= kMin; k--) {
-    tiers.push(generatePatternsAtK(bn, dn, k, numberLength));
-  }
-
-  let active = tiers;
-  while (active.length > 0) {
-    const stillActive: Tier[] = [];
-    for (const t of active) {
-      const next = t.next();
-      if (!next.done) {
-        yield next.value;
-        stillActive.push(t);
-      }
-    }
-    active = stillActive;
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Pattern matching: Twilio-style pattern (digits + 'x' wildcard) substring.
 
@@ -263,48 +223,63 @@ function digitalRoot(s: string): number {
 // ---------------------------------------------------------------------------
 // Score a domestic phone number (digits-only string) against bn, dn.
 
+// Cache of compiled regexes per (bn, dn) pair. Only 81 distinct pairs exist,
+// so this is bounded; saves O(5) `new RegExp` calls per scoreNumber call on
+// the hot path (search route can score thousands per request).
+type ScoreRegexes = {
+  bnRe: RegExp;
+  dnRe: RegExp;
+  combinedClassG: RegExp;
+  longestRunRe: RegExp;
+};
+const SCORE_REGEX_CACHE = new Map<number, ScoreRegexes>();
+const REPEAT_RUN_RE = /(\d)\1*/g;
+const DIGITS_ONLY_RE = /^\d+$/;
+
+function getScoreRegexes(bn: number, dn: number): ScoreRegexes {
+  const key = bn * 10 + dn;
+  const cached = SCORE_REGEX_CACHE.get(key);
+  if (cached) return cached;
+  const bnStr = String(bn);
+  const dnStr = String(dn);
+  const combinedClass = bn === dn ? `[${bnStr}]` : `[${bnStr}${dnStr}]`;
+  const compiled: ScoreRegexes = {
+    bnRe: new RegExp(bnStr, 'g'),
+    dnRe: new RegExp(dnStr, 'g'),
+    combinedClassG: new RegExp(combinedClass, 'g'),
+    longestRunRe: new RegExp(`${combinedClass}+`, 'g'),
+  };
+  SCORE_REGEX_CACHE.set(key, compiled);
+  return compiled;
+}
+
 export function scoreNumber(
   domestic: string,
   bn: number,
   dn: number
 ): ScoredNumber {
   validateBnDn(bn, dn);
-  if (!/^\d+$/.test(domestic)) {
+  if (!DIGITS_ONLY_RE.test(domestic)) {
     throw new Error(`domestic must be digits only, got ${JSON.stringify(domestic)}`);
   }
 
-  const bnStr = String(bn);
-  const dnStr = String(dn);
+  const { bnRe, dnRe, combinedClassG, longestRunRe } = getScoreRegexes(bn, dn);
 
-  // Count individual occurrences via regex.
-  const bnRe = new RegExp(bnStr, 'g');
-  const dnRe = new RegExp(dnStr, 'g');
   const bn_count = (domestic.match(bnRe) ?? []).length;
   const dn_count = bn === dn ? bn_count : (domestic.match(dnRe) ?? []).length;
-
-  // Combined count: chars that are bn or dn.
-  const combinedClass =
-    bn === dn ? `[${bnStr}]` : `[${bnStr}${dnStr}]`;
-  const combinedClassG = new RegExp(combinedClass, 'g');
   const bn_dn_count = (domestic.match(combinedClassG) ?? []).length;
 
   const total = domestic.length;
   const pct = total > 0 ? bn_dn_count / total : 0;
   const bn_dn_pct = Math.round(pct * 1000) / 1000;
 
-  // Longest run of bn|dn digits via regex.
-  const longestRunRe = new RegExp(`${combinedClass}+`, 'g');
   const runs = domestic.match(longestRunRe) ?? [];
   let longest_bn_dn_run = 0;
   for (const r of runs) if (r.length > longest_bn_dn_run) longest_bn_dn_run = r.length;
 
-  // Longest run of any same single digit.
-  const repeatRuns = domestic.match(/(\d)\1*/g) ?? [];
+  const repeatRuns = domestic.match(REPEAT_RUN_RE) ?? [];
   let longest_repeat_run = 0;
   for (const r of repeatRuns) if (r.length > longest_repeat_run) longest_repeat_run = r.length;
-
-  const trailing4 = domestic.slice(-4);
-  const digital_root = digitalRoot(domestic);
 
   return {
     domestic,
@@ -312,9 +287,9 @@ export function scoreNumber(
     dn_count,
     bn_dn_count,
     bn_dn_pct,
-    digital_root,
+    digital_root: digitalRoot(domestic),
     longest_bn_dn_run,
     longest_repeat_run,
-    trailing4,
+    trailing4: domestic.slice(-4),
   };
 }

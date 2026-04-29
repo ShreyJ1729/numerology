@@ -120,7 +120,7 @@ export default function Home() {
       </section>
 
       <footer className="mt-16 pt-6 border-t border-[var(--color-rule)] text-sm text-[#6B6B6B]">
-        By{" "}
+        Built with love by{" "}
         <a
           href="https://shreyjoshi.com"
           target="_blank"
