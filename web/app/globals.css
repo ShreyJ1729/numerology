@@ -4,7 +4,6 @@
   --font-serif: var(--font-serif-display), Georgia, serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
-  --font-tech: var(--font-tech-mono), ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
 
   --color-saffron: #E97724;
   --color-saffron-dark: #C8631A;
@@ -16,30 +15,27 @@
   --color-muted: #6B6B6B;
 }
 
-.font-tech {
-  font-family: var(--font-tech);
-  letter-spacing: 0.04em;
-}
-
 html, body {
   background-color: #FDF8F1;
   color: #2A2A2A;
   font-family: var(--font-sans);
   font-size: 18px;
-  line-height: 1.55;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
+  font-kerning: normal;
+  font-feature-settings: "kern", "liga", "clig", "calt";
+  text-rendering: optimizeLegibility;
 }
 
-h1, h2, h3, h4 {
-  font-family: var(--font-serif);
-  letter-spacing: -0.01em;
-  line-height: 1.15;
-}
+h1, h2, h3, h4 { font-family: var(--font-serif); }
+h1 { letter-spacing: -0.02em; line-height: 1.05; }
+h2 { letter-spacing: -0.015em; line-height: 1.1; }
+h3, h4 { letter-spacing: -0.01em; line-height: 1.2; }
 
 .eyebrow {
   font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
   color: #6B6B6B;
 }
@@ -48,27 +44,57 @@ h1, h2, h3, h4 {
   color: #B05818;
 }
 
+a { text-decoration-thickness: 1px; }
+
 .card-lift {
   transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
-.card-lift:hover {
-  transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 20px 40px -20px rgba(139, 44, 44, 0.15);
+@media (hover: hover) {
+  .card-lift:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 20px 40px -20px rgba(139, 44, 44, 0.15);
+  }
+}
+
+/* ─── Buttons ─────────────────────────────────────────────────
+   All pill buttons share a 44px min-height tap target on mobile and
+   stretch full-width inside flex/grid parents that allow it. Use
+   `btn-inline` to opt out of full-width when sitting next to text. */
+.btn-saffron,
+.btn-outline-saffron,
+.btn-cancel {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.6rem 1.5rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+@media (min-width: 640px) {
+  .btn-saffron,
+  .btn-outline-saffron,
+  .btn-cancel {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+  }
 }
 
 .btn-saffron {
   background-color: #E97724;
   color: #FFFFFF;
-  border-radius: 9999px;
-  padding: 0.75rem 2rem;
-  font-weight: 500;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-  cursor: pointer;
+  border: 1px solid transparent;
 }
 .btn-saffron:hover { background-color: #C8631A; }
 .btn-saffron:disabled {
   background-color: #E5DCCB;
-  color: #A89B86;
+  color: #7A6F5C;
   cursor: not-allowed;
 }
 
@@ -76,10 +102,6 @@ h1, h2, h3, h4 {
   background-color: transparent;
   color: #B05818;
   border: 1.5px solid #E97724;
-  border-radius: 9999px;
-  padding: 0.75rem 2rem;
-  font-weight: 500;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 .btn-outline-saffron:hover {
   background-color: #E97724;
@@ -90,11 +112,6 @@ h1, h2, h3, h4 {
   background-color: transparent;
   color: #6B6B6B;
   border: 1px solid #D9CDB6;
-  border-radius: 9999px;
-  padding: 0.75rem 2rem;
-  font-weight: 500;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-  cursor: pointer;
 }
 .btn-cancel:hover {
   background-color: #FDF8F1;
@@ -115,6 +132,9 @@ h1, h2, h3, h4 {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  min-height: 36px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .btn-ghost:hover {
   background-color: #FDF8F1;
@@ -134,13 +154,28 @@ h1, h2, h3, h4 {
   padding: 0.75rem 1rem;
   color: #2A2A2A;
   font-family: var(--font-sans);
+  /* 16px on mobile prevents iOS Safari from zooming on focus. */
+  font-size: 16px;
+  min-height: 48px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  -webkit-appearance: none;
+  appearance: none;
 }
 .input-aol::placeholder { color: #B5A790; }
 .input-aol:focus {
   outline: none;
   border-color: #E97724;
   box-shadow: 0 0 0 4px rgba(233, 119, 36, 0.12);
+}
+@media (min-width: 640px) {
+  .input-aol { font-size: 1rem; }
+}
+
+/* Native date inputs on iOS render an empty placeholder before a value
+   exists; nudge the value text to the left so it lines up with siblings. */
+input[type="date"].input-aol {
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 /* ─── Score bands on PhoneCard ─────────────────────────────── */
@@ -181,7 +216,7 @@ h1, h2, h3, h4 {
   color: #8C6B1E;
   font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
 }
 
@@ -197,8 +232,8 @@ h1, h2, h3, h4 {
   color: #8C6B1E;
   font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.16em;
-  text-indent: 0.16em;
+  letter-spacing: 0.12em;
+  text-indent: 0.12em;
   text-transform: uppercase;
   text-align: center;
   white-space: nowrap;
@@ -210,6 +245,8 @@ h1, h2, h3, h4 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* Larger hit area on touch — visual size stays via a pseudo-element
+     so the layout doesn't shift. */
   width: 14px;
   height: 14px;
   margin-left: 0.35rem;
@@ -224,6 +261,14 @@ h1, h2, h3, h4 {
   cursor: help;
   transition: background-color 0.15s ease, color 0.15s ease;
   vertical-align: middle;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.tip-trigger::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
 }
 .tip-trigger:hover,
 .tip-trigger:focus-visible {
@@ -238,12 +283,13 @@ h1, h2, h3, h4 {
   left: 50%;
   transform: translateX(-50%);
   width: max-content;
-  max-width: 260px;
+  /* Cap to viewport on small screens so the bubble never clips off-edge. */
+  max-width: min(260px, calc(100vw - 32px));
   padding: 0.6rem 0.75rem;
   background: #2A2A2A;
   color: #FDF8F1;
-  font-size: 0.75rem;
-  line-height: 1.45;
+  font-size: 0.8125rem;
+  line-height: 1.5;
   border-radius: 0.6rem;
   box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.35);
   pointer-events: none;
@@ -252,14 +298,42 @@ h1, h2, h3, h4 {
   text-transform: none;
   font-weight: 400;
 }
+.tip-bubble.is-shifted {
+  /* When JS detects an edge collision, it sets a CSS var with the
+     pixel adjustment to nudge the bubble back into view. */
+  transform: translateX(calc(-50% + var(--tip-shift, 0px)));
+}
 .tip-bubble::after {
   content: "";
   position: absolute;
   top: 100%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(calc(-50% - var(--tip-shift, 0px)));
   border: 5px solid transparent;
   border-top-color: #2A2A2A;
+}
+
+/* ─── Page mandala backdrop ───────────────────────────────── */
+.page-mandala-bg {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+.page-mandala-bg svg {
+  width: min(1400px, 110vmin);
+  height: min(1400px, 110vmin);
+  opacity: 0.11;
+}
+@media (min-width: 768px) {
+  .page-mandala-bg svg { opacity: 0.14; }
+}
+@media (min-width: 1280px) {
+  .page-mandala-bg svg { opacity: 0.17; }
 }
 
 /* ─── Hero mandala backdrop ───────────────────────────────── */
@@ -273,9 +347,13 @@ h1, h2, h3, h4 {
   z-index: 0;
 }
 .hero-mandala svg {
-  width: min(640px, 90%);
+  width: min(640px, 110%);
   height: auto;
-  opacity: 0.10;
+  /* Slightly more subtle on small screens where the SVG dominates. */
+  opacity: 0.08;
+}
+@media (min-width: 768px) {
+  .hero-mandala svg { opacity: 0.10; }
 }
 
 /* ─── Reduced-motion preferences ──────────────────────────── */
@@ -284,5 +362,8 @@ h1, h2, h3, h4 {
   .card-lift:hover {
     transition: none !important;
     transform: none !important;
+  }
+  .animate-pulse {
+    animation: none !important;
   }
 }

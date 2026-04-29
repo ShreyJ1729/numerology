@@ -6,10 +6,18 @@ Given a Mulank (BN) and Bhayank (DN), search Twilio for available numbers where:
   2. The repeated digital root of those digits equals BN or DN.
 
 Strategy: Twilio's Contains parameter only supports `*` as a single-digit wildcard
-(no character classes), so we enumerate all 2^k length-k patterns made of {BN, DN}
-and call AvailablePhoneNumbers Local with Contains=<pattern> for each. With k=5,
-any hit already supplies 5/10 BN-DN digits, so the 50% rule is satisfied by the
-anchor alone -- post-filter only enforces the digital-root constraint.
+(no character classes), so we enumerate length-k patterns made of {BN, DN} and call
+AvailablePhoneNumbers Local with Contains=<pattern> for each.
+
+A single fixed k is too exclusive -- especially when BN==DN, where length-5 collapses
+to a single pattern like "55555" and misses numbers with the BN/DN digits scattered
+or in shorter runs. Instead, we search across multiple anchor lengths (default 2,3,4,5),
+union the results, dedupe by phone number, and let the post-filter enforce the >=50%
+and digital-root rules. Twilio caps each Contains query at PageSize results regardless
+of true inventory match count, and empirically different anchor lengths return disjoint
+slices of inventory -- so more anchors strictly yield more candidates. Larger k (e.g. 5)
+actually surfaces the most numbers per BN/DN pair because each of its 32 patterns samples
+a different inventory slice; smaller k (e.g. 2) supplements with a few dozen extra hits.
 """
 
 from __future__ import annotations
@@ -116,8 +124,12 @@ def main() -> int:
     p.add_argument("--dn", type=int, required=True, help="Bhayank / Destiny Number (1-9)")
     p.add_argument("--country", default="US", help="ISO country code (default: US)")
     p.add_argument("--area-code", default=None, help="Optional area code filter")
-    p.add_argument("--anchor-length", "-k", type=int, default=5,
-                   help="Length of contiguous BN/DN block to search for (default: 5)")
+    p.add_argument("--anchor-lengths", "-k", default="2,3,4,5",
+                   help="Comma-separated anchor pattern lengths to search (default: 2,3,4,5). "
+                        "Results across all lengths are unioned and deduped before post-filter. "
+                        "Twilio caps each Contains query at PageSize results regardless of how many "
+                        "actually match in inventory, and different anchor lengths sample disjoint "
+                        "slices of the inventory -- so more anchors yield strictly more candidates.")
     p.add_argument("--page-size", type=int, default=50,
                    help="Twilio results per anchor (max ~50 for Local)")
     p.add_argument("--out", default="ranked_phone_numbers.csv")
@@ -129,8 +141,17 @@ def main() -> int:
     if not (1 <= args.bn <= 9 and 1 <= args.dn <= 9):
         print("BN and DN must each be 1-9", file=sys.stderr)
         return 2
+
+    try:
+        lengths = sorted({int(x) for x in args.anchor_lengths.split(",") if x.strip()}, reverse=True)
+    except ValueError:
+        print(f"--anchor-lengths must be comma-separated ints, got: {args.anchor_lengths!r}", file=sys.stderr)
+        return 2
+    if not lengths or any(L < 1 or L > 10 for L in lengths):
+        print("--anchor-lengths values must be in 1..10", file=sys.stderr)
+        return 2
     if args.bn == args.dn:
-        print(f"Note: BN==DN=={args.bn}; anchor set will be a single pattern.", file=sys.stderr)
+        print(f"Note: BN==DN=={args.bn}; each length contributes a single pattern.", file=sys.stderr)
 
     env = load_env(Path(args.env))
     sid = env.get("TWILIO_ACCOUNT_SID") or os.environ.get("TWILIO_ACCOUNT_SID")
@@ -148,29 +169,35 @@ def main() -> int:
         print("Need TWILIO_API_KEY_SID+SECRET or TWILIO_AUTH_TOKEN", file=sys.stderr)
         return 2
 
-    anchors = generate_anchors(args.bn, args.dn, args.anchor_length)
-    print(f"BN={args.bn} DN={args.dn}  anchors={len(anchors)} (length {args.anchor_length})  "
+    anchors_by_len = {L: generate_anchors(args.bn, args.dn, L) for L in lengths}
+    total_anchors = sum(len(a) for a in anchors_by_len.values())
+    summary = ", ".join(f"k={L}:{len(anchors_by_len[L])}" for L in lengths)
+    print(f"BN={args.bn} DN={args.dn}  anchors={total_anchors} ({summary})  "
           f"country={args.country}  area_code={args.area_code or '-'}", file=sys.stderr)
 
     seen: dict[str, dict] = {}
-    for i, anchor in enumerate(anchors, 1):
-        try:
-            results = search_twilio(auth, sid, args.country, anchor, args.area_code, args.page_size)
-        except requests.HTTPError as e:
-            body = e.response.text[:200] if e.response is not None else ""
-            print(f"  [{i}/{len(anchors)}] {anchor}: HTTP error {e}  {body}", file=sys.stderr)
-            continue
-        new = 0
-        for r in results:
-            num = r.get("phone_number")
-            if not num or num in seen:
+    i = 0
+    for L in lengths:
+        anchors = anchors_by_len[L]
+        for anchor in anchors:
+            i += 1
+            try:
+                results = search_twilio(auth, sid, args.country, anchor, args.area_code, args.page_size)
+            except requests.HTTPError as e:
+                body = e.response.text[:200] if e.response is not None else ""
+                print(f"  [{i}/{total_anchors}] k={L} {anchor}: HTTP error {e}  {body}", file=sys.stderr)
                 continue
-            seen[num] = r
-            new += 1
-        print(f"  [{i}/{len(anchors)}] Contains={anchor}: {len(results)} hits "
-              f"(+{new} new, {len(seen)} unique total)", file=sys.stderr)
-        if args.sleep:
-            time.sleep(args.sleep)
+            new = 0
+            for r in results:
+                num = r.get("phone_number")
+                if not num or num in seen:
+                    continue
+                seen[num] = r
+                new += 1
+            print(f"  [{i}/{total_anchors}] k={L} Contains={anchor}: {len(results)} hits "
+                  f"(+{new} new, {len(seen)} unique total)", file=sys.stderr)
+            if args.sleep:
+                time.sleep(args.sleep)
 
     matches: list[dict] = []
     for num, r in seen.items():

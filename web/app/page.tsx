@@ -3,7 +3,7 @@ import PhoneSearch from "@/components/PhoneSearch";
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
+    <main className="relative min-h-screen">
       <a
         href="#dashboard"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-[#FDF8F1] focus:border focus:border-[#EADFCB] focus:rounded-md focus:px-3 focus:py-2 focus:text-[#2A2A2A]"
@@ -11,50 +11,48 @@ export default function Home() {
         Skip to tools
       </a>
 
-      <nav className="sticky top-0 z-30 backdrop-blur bg-[#FDF8F1]/80 border-b border-[#EADFCB]">
-        <div className="max-w-7xl mx-auto px-8 py-5 flex items-center">
-          <span className="text-2xl font-serif text-[#2A2A2A] tracking-tight">
+      <nav className="sticky top-0 z-30 backdrop-blur bg-[#FDF8F1]/85 border-b border-[#EADFCB]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-5 flex items-center">
+          <span className="text-lg sm:text-xl lg:text-2xl font-serif text-[#2A2A2A] tracking-tight">
             Art of <span className="text-[#B05818]">Numerology</span>
           </span>
         </div>
       </nav>
 
-      <section className="relative max-w-7xl mx-auto px-8 pt-12 pb-6 overflow-hidden">
+      <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 pb-4 sm:pb-6 overflow-hidden">
         <div className="hero-mandala" aria-hidden="true">
           <HeroMandala />
         </div>
         <div className="relative max-w-3xl">
-          <h1 className="text-4xl md:text-5xl text-[#2A2A2A] font-normal leading-tight">
+          <h1 className="text-[clamp(1.75rem,6vw,3rem)] md:text-5xl text-[#2A2A2A] font-normal leading-tight text-balance">
             Numerology for names and phone numbers.
           </h1>
-          <p className="text-[#6B6B6B] mt-5 text-lg leading-relaxed max-w-[38em]">
+          <p className="text-[#6B6B6B] mt-4 sm:mt-5 text-base sm:text-lg max-w-[68ch]">
             Compute your Mulank and Bhagyank, then find phone numbers that align.
           </p>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-8 pb-10">
-        <p className="text-[#2A2A2A] leading-relaxed max-w-[38em]">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 sm:pb-10">
+        <p className="text-[#2A2A2A] max-w-[68ch] text-[0.95rem] sm:text-base">
           In Vedic numerology, every name and date carries a numeric vibration.
-          Your <strong className="font-semibold">Mulank</strong> is the digital
-          root of your day of birth (1–9), reflecting your core nature. Your{" "}
-          <strong className="font-semibold">Bhagyank</strong> reduces your full
+          Your <em>Mulank</em> is the digital root of your day of birth (1–9),
+          reflecting your core nature. Your <em>Bhagyank</em> reduces your full
           date of birth to a single digit, marking the path your life is drawn
-          toward. The tools below compute your{" "}
-          <strong className="font-semibold">name number</strong> and find phone
-          numbers whose digits resonate with these two roots.
+          toward. The tools below compute your <em>name number</em> and find
+          phone numbers whose digits resonate with these two roots.
         </p>
       </section>
 
-      <section id="dashboard" className="max-w-7xl mx-auto px-8 pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+      <section id="dashboard" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 sm:gap-8">
           <div id="name" className="lg:col-span-2">
             <PanelHeader
               index="1."
               title="Name number"
               caption="The single-digit value of your name."
             />
-            <div className="bg-white border border-[#EADFCB] rounded-2xl p-7">
+            <div className="bg-white border border-[#EADFCB] rounded-2xl p-4 sm:p-6 lg:p-7">
               <NameCalculator />
             </div>
           </div>
@@ -65,7 +63,7 @@ export default function Home() {
               title="Phone numbers"
               caption="Available numbers that match your Mulank and Bhagyank."
             />
-            <div className="bg-white border border-[#EADFCB] rounded-2xl p-7">
+            <div className="bg-white border border-[#EADFCB] rounded-2xl p-4 sm:p-6 lg:p-7">
               <PhoneSearch />
             </div>
           </div>
@@ -73,7 +71,7 @@ export default function Home() {
       </section>
 
       <footer id="about" className="bg-[#F5EBDC] border-t border-[#EADFCB]">
-        <div className="max-w-7xl mx-auto px-8 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
           <p className="text-[#6B6B6B] text-sm">
             By{" "}
             <a
@@ -102,14 +100,14 @@ function PanelHeader({
   caption: string;
 }) {
   return (
-    <div className="mb-5 px-1">
+    <div className="mb-4 sm:mb-5 px-1">
       <div className="flex items-baseline gap-2">
-        <span className="text-[#B05818] font-serif text-xl tabular-nums">
+        <span className="text-[#B05818] font-serif text-lg sm:text-xl tabular-nums">
           {index}
         </span>
-        <h2 className="text-3xl text-[#2A2A2A] font-normal">{title}</h2>
+        <h2 className="text-2xl sm:text-3xl text-[#2A2A2A] font-normal">{title}</h2>
       </div>
-      <p className="text-[#6B6B6B] mt-1.5 text-sm max-w-[38em]">{caption}</p>
+      <p className="text-[#6B6B6B] mt-1.5 text-sm max-w-[68ch]">{caption}</p>
     </div>
   );
 }
@@ -190,7 +188,7 @@ function HeroMandala() {
             y={y}
             textAnchor="middle"
             dominantBaseline="middle"
-            fontFamily="Playfair Display, Georgia, serif"
+            style={{ fontFamily: "var(--font-serif-display), serif" }}
             fontSize="22"
             fill="#B05818"
             fillOpacity="0.7"

@@ -140,10 +140,15 @@ export default function PhoneSearch() {
       ? "bg-[#7A8B5C]"
       : "bg-gradient-to-r from-[#E97724] to-[#C9A961]";
 
-  const statusLabel =
+  const statusLabel: React.ReactNode =
     status === "searching"
       ? currentAnchor
-        ? `Trying numbers containing ${currentAnchor}`
+        ? (
+          <>
+            Trying numbers containing{" "}
+            <code style={{ fontFamily: "var(--font-mono)" }} className="tabular-nums">{currentAnchor}</code>
+          </>
+        )
         : "Preparing search…"
       : status === "done"
       ? "Search complete"
@@ -154,12 +159,13 @@ export default function PhoneSearch() {
       : "";
 
   return (
-    <div className="space-y-6">
-      <div className="space-y-5">
+    <div className="space-y-5 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="eyebrow block mb-1.5">Date of Birth</label>
+            <label className="eyebrow block mb-1.5" htmlFor="dob-input">Date of Birth</label>
             <input
+              id="dob-input"
               type="date"
               value={dob}
               onChange={(e) => setDob(e.target.value)}
@@ -176,31 +182,33 @@ export default function PhoneSearch() {
         </div>
 
         {dobWords && (
-          <div className="flex items-baseline gap-2 text-xs">
+          <div className="flex items-baseline gap-2 text-xs flex-wrap">
             <span className="eyebrow text-[#6B6B6B]">Reading as</span>
             <span className="font-serif text-[#2A2A2A]">{dobWords}</span>
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
           <DerivedPill
-            label="Mulank (BN)"
+            label={<>Mulank <span style={{ fontVariantCaps: "all-small-caps", letterSpacing: "0.05em" }}>(bn)</span></>}
+            ariaLabel="Mulank"
             value={bn}
             tooltip="Mulank (Birth Number) is the digital root of your day of birth, reduced to 1–9. It reflects your core personality vibration."
           />
           <DerivedPill
-            label="Bhagyank (DN)"
+            label={<>Bhagyank <span style={{ fontVariantCaps: "all-small-caps", letterSpacing: "0.05em" }}>(dn)</span></>}
+            ariaLabel="Bhagyank"
             value={dn}
             tooltip="Bhagyank (Destiny Number) is the digital root of your full date of birth (DD-MM-YYYY). It reflects the path your life is drawn toward."
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 pt-1">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 pt-1">
           {status !== "searching" ? (
             <button
               onClick={startSearch}
               disabled={!inputsValid}
-              className="btn-saffron"
+              className="btn-saffron w-full sm:w-auto"
               aria-label="Begin phone number search"
             >
               Search<span aria-hidden="true"> →</span>
@@ -208,14 +216,14 @@ export default function PhoneSearch() {
           ) : (
             <button
               onClick={cancelSearch}
-              className="btn-cancel"
+              className="btn-cancel w-full sm:w-auto"
               aria-label="Cancel ongoing search"
             >
               Cancel search
             </button>
           )}
           {inputsValid && bn === dn && (
-            <div className="text-xs text-[#6B6B6B]">
+            <div className="text-xs text-[#6B6B6B] leading-snug">
               BN equals DN — only one anchor pattern will be searched.
             </div>
           )}
@@ -223,8 +231,8 @@ export default function PhoneSearch() {
       </div>
 
       {status !== "idle" && (
-        <div className="bg-[#FDF8F1] border border-[#EADFCB] rounded-2xl p-5 space-y-3">
-          <div className="flex items-center justify-between text-sm gap-3">
+        <div className="bg-[#FDF8F1] border border-[#EADFCB] rounded-2xl p-4 sm:p-5 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm gap-2 sm:gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
               {status === "searching" && (
                 <span className="inline-block w-2 h-2 rounded-full bg-[#E97724] animate-pulse shrink-0" />
@@ -238,8 +246,8 @@ export default function PhoneSearch() {
               {status === "error" && (
                 <span className="inline-block w-2 h-2 rounded-full bg-[#8B2C2C] shrink-0" />
               )}
-              <span className="text-[#2A2A2A] font-medium truncate flex items-center">
-                {statusLabel}
+              <span className="text-[#2A2A2A] font-medium flex items-center min-w-0">
+                <span className="truncate">{statusLabel}</span>
                 {status === "searching" && (
                   <Tooltip label="Anchor">
                     An anchor is a short digit pattern built from your Mulank ({bn}) and
@@ -248,7 +256,7 @@ export default function PhoneSearch() {
                 )}
               </span>
             </div>
-            <div className="text-[#6B6B6B] tabular-nums text-xs whitespace-nowrap">
+            <div className="text-[#6B6B6B] tabular-nums text-xs whitespace-nowrap pl-4 sm:pl-0 self-end sm:self-auto">
               {seenCount} seen ·{" "}
               <span className="text-[#B05818] font-semibold">{matches.length} matches</span>
             </div>
@@ -260,14 +268,14 @@ export default function PhoneSearch() {
             />
           </div>
           {status === "searching" && (
-            <p className="text-[11px] text-[#6B6B6B] leading-snug max-w-[42em]">
+            <p className="text-[11px] text-[#6B6B6B] leading-snug max-w-[60ch]">
               Anchors are digit patterns of length 5 to 2 made from your Mulank and
               Bhagyank. We sweep from longest to shortest so the rarest, strongest
               matches surface first.
             </p>
           )}
           {error && (
-            <div className="text-sm text-[#8B2C2C] bg-white border border-[#EADFCB] rounded-xl p-3">
+            <div className="text-sm text-[#8B2C2C] bg-white border border-[#EADFCB] rounded-xl p-3 break-words">
               {error}
             </div>
           )}
@@ -278,7 +286,7 @@ export default function PhoneSearch() {
         const topMatches = matches.slice(0, 24);
         const maxPct = Math.max(...topMatches.map((m) => m.bn_dn_pct));
         return (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 sm:gap-3">
             {topMatches.map((m) => (
               <PhoneCard
                 key={m.phone_number}
@@ -293,7 +301,7 @@ export default function PhoneSearch() {
       })()}
 
       {status === "done" && matches.length === 0 && (
-        <div className="py-12 text-[#6B6B6B]">
+        <div className="py-10 sm:py-12 text-[#6B6B6B] text-sm sm:text-base">
           No matches passed both filters.
         </div>
       )}
@@ -305,21 +313,23 @@ function DerivedPill({
   label,
   value,
   tooltip,
+  ariaLabel,
 }: {
-  label: string;
+  label: React.ReactNode;
   value: number | null;
   tooltip?: string;
+  ariaLabel?: string;
 }) {
   return (
-    <div className="bg-[#FDF8F1] border border-[#EADFCB] rounded-xl px-4 py-3 flex items-baseline justify-between">
-      <div className="text-[10px] tracking-[0.14em] uppercase font-medium text-[#6B6B6B] flex items-center">
-        {label}
+    <div className="bg-[#FDF8F1] border border-[#EADFCB] rounded-xl px-3 sm:px-4 py-3 flex items-baseline justify-between gap-2">
+      <div className="text-[10px] tracking-[0.14em] uppercase font-medium text-[#6B6B6B] flex items-center min-w-0">
+        <span className="truncate">{label}</span>
         {tooltip && (
-          <Tooltip label={label}>{tooltip}</Tooltip>
+          <Tooltip label={ariaLabel ?? "info"}>{tooltip}</Tooltip>
         )}
       </div>
-      <div className="font-serif text-2xl text-[#B05818] tabular-nums leading-none">
-        {value ?? "—"}
+      <div className="font-serif text-xl sm:text-2xl text-[#B05818] tabular-nums leading-none shrink-0">
+        {value ?? "–"}
       </div>
     </div>
   );
@@ -338,11 +348,12 @@ function SelectField({
 }) {
   return (
     <div>
-      <label className="eyebrow block mb-1.5">{label}</label>
+      <label className="eyebrow block mb-1.5" htmlFor={`select-${label}`}>{label}</label>
       <select
+        id={`select-${label}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="input-aol cursor-pointer"
+        className="input-aol cursor-pointer pr-10"
       >
         {options.map((o) => (
           <option key={o.code} value={o.code}>
