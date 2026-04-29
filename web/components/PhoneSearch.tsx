@@ -1,24 +1,59 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   COUNTRY_OPTIONS,
   bhagyankFromDob,
-  generateAnchors,
   mulankFromDob,
-  scoreNumber,
   sortMatches,
-  stripCountryCode,
   type Match,
-  type TwilioNumber,
 } from "@/lib/numerology";
 import PhoneCard from "./PhoneCard";
 import Tooltip from "./Tooltip";
 
 type Status = "idle" | "searching" | "done" | "error" | "cancelled";
 
-const ANCHOR_LENGTHS = [5, 4, 3, 2];
-const PAGE_SIZE = 50;
+type SseMatch = {
+  phone_number: string;
+  friendly_name: string;
+  region: string;
+  locality: string;
+  iso_country: string;
+  domestic: string;
+  bn_count: number;
+  dn_count: number;
+  bn_dn_count: number;
+  bn_dn_pct: number;
+  digital_root: number;
+  longest_bn_dn_run: number;
+  longest_repeat_run: number;
+  trailing4: string;
+  viaPattern?: string;
+  viaK?: number;
+};
+
+type SseMeta = {
+  queriesPlanned: number;
+  queriesAvailable: number;
+  kMin: number;
+  numberLength: number;
+};
+
+type SseProgress = {
+  queriesDone: number;
+  queriesPlanned: number;
+  currentK: number;
+  matchesEmitted: number;
+  seenCount: number;
+};
+
+type SseDone = {
+  queriesDone: number;
+  matchesEmitted: number;
+  stoppedReason: string;
+};
+
+const FLUSH_INTERVAL_MS = 150;
 
 export default function PhoneSearch() {
   const [dob, setDob] = useState("");
@@ -44,14 +79,139 @@ export default function PhoneSearch() {
   }, [dob, bn, country]);
 
   const [status, setStatus] = useState<Status>("idle");
-  const [progress, setProgress] = useState({ current: 0, total: 0 });
-  const [seenCount, setSeenCount] = useState(0);
-  const [currentAnchor, setCurrentAnchor] = useState("");
+  const [meta, setMeta] = useState<SseMeta | null>(null);
+  const [progress, setProgress] = useState<SseProgress>({
+    queriesDone: 0,
+    queriesPlanned: 0,
+    currentK: 0,
+    matchesEmitted: 0,
+    seenCount: 0,
+  });
   const [matches, setMatches] = useState<Match[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  // Tracks the previous currentK so we can show a brief "k = N" announcement.
+  const [kAnnounce, setKAnnounce] = useState<number | null>(null);
+  const kAnnounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const abortRef = useRef<AbortController | null>(null);
+  // Buffer of matches we've received but not yet flushed to React state.
+  const matchBufferRef = useRef<Match[]>([]);
+  const flushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastKRef = useRef<number>(0);
 
   const inputsValid = bn !== null && dn !== null;
+
+  useEffect(() => {
+    return () => {
+      if (flushTimerRef.current) clearTimeout(flushTimerRef.current);
+      if (kAnnounceTimerRef.current) clearTimeout(kAnnounceTimerRef.current);
+      abortRef.current?.abort();
+    };
+  }, []);
+
+  function scheduleFlush() {
+    if (flushTimerRef.current) return;
+    flushTimerRef.current = setTimeout(() => {
+      flushTimerRef.current = null;
+      const buf = matchBufferRef.current;
+      if (buf.length === 0) return;
+      // Replace with sorted snapshot of the full buffer.
+      setMatches(sortMatches(buf.slice()));
+    }, FLUSH_INTERVAL_MS);
+  }
+
+  function flushNow() {
+    if (flushTimerRef.current) {
+      clearTimeout(flushTimerRef.current);
+      flushTimerRef.current = null;
+    }
+    const buf = matchBufferRef.current;
+    setMatches(sortMatches(buf.slice()));
+  }
+
+  function announceK(k: number) {
+    setKAnnounce(k);
+    if (kAnnounceTimerRef.current) clearTimeout(kAnnounceTimerRef.current);
+    kAnnounceTimerRef.current = setTimeout(() => {
+      setKAnnounce(null);
+      kAnnounceTimerRef.current = null;
+    }, 1200);
+  }
+
+  function handleSseMessage(raw: string) {
+    // Parse a single SSE message block: lines like "event: foo" and "data: ...".
+    let eventName = "message";
+    const dataLines: string[] = [];
+    for (const line of raw.split("\n")) {
+      if (line.startsWith("event:")) {
+        eventName = line.slice(6).trim();
+      } else if (line.startsWith("data:")) {
+        dataLines.push(line.slice(5).replace(/^ /, ""));
+      }
+      // Comments (":") and other field types are ignored.
+    }
+    if (dataLines.length === 0) return;
+    const dataStr = dataLines.join("\n");
+
+    let payload: unknown;
+    try {
+      payload = JSON.parse(dataStr);
+    } catch {
+      return;
+    }
+
+    if (eventName === "meta") {
+      const m = payload as SseMeta;
+      setMeta(m);
+      setProgress((prev) => ({
+        ...prev,
+        queriesPlanned: m.queriesPlanned,
+        currentK: m.numberLength,
+      }));
+      lastKRef.current = m.numberLength;
+      announceK(m.numberLength);
+    } else if (eventName === "progress") {
+      const p = payload as SseProgress;
+      setProgress(p);
+      if (p.currentK !== lastKRef.current) {
+        lastKRef.current = p.currentK;
+        announceK(p.currentK);
+      }
+    } else if (eventName === "match") {
+      const evt = payload as SseMatch;
+      const match: Match = {
+        phone_number: evt.phone_number,
+        friendly_name: evt.friendly_name,
+        locality: evt.locality,
+        region: evt.region,
+        iso_country: evt.iso_country,
+        domestic: evt.domestic,
+        bn_dn_count: evt.bn_dn_count,
+        bn_dn_pct: evt.bn_dn_pct,
+        digital_root: evt.digital_root,
+        longest_repeat_run: evt.longest_repeat_run,
+        longest_bn_dn_run: evt.longest_bn_dn_run,
+        trailing4: evt.trailing4,
+      };
+      matchBufferRef.current.push(match);
+      scheduleFlush();
+    } else if (eventName === "done") {
+      const d = payload as SseDone;
+      setProgress((prev) => ({
+        ...prev,
+        queriesDone: d.queriesDone,
+        matchesEmitted: d.matchesEmitted,
+      }));
+      flushNow();
+      setStatus("done");
+    } else if (eventName === "error") {
+      const errPayload = payload as { message?: string };
+      setError(errPayload.message || "Server error");
+      flushNow();
+      setStatus("error");
+    }
+  }
 
   async function startSearch() {
     if (bn === null || dn === null) return;
@@ -59,68 +219,91 @@ export default function PhoneSearch() {
     setStatus("searching");
     setError(null);
     setMatches([]);
-    setSeenCount(0);
-    setCurrentAnchor("");
+    setMeta(null);
+    setProgress({
+      queriesDone: 0,
+      queriesPlanned: 0,
+      currentK: 0,
+      matchesEmitted: 0,
+      seenCount: 0,
+    });
+    matchBufferRef.current = [];
+    lastKRef.current = 0;
+    if (flushTimerRef.current) {
+      clearTimeout(flushTimerRef.current);
+      flushTimerRef.current = null;
+    }
 
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const allAnchors = ANCHOR_LENGTHS.flatMap((L) => generateAnchors(bn, dn, L));
-    setProgress({ current: 0, total: allAnchors.length });
-
-    const seen = new Map<string, TwilioNumber>();
-    const found: Match[] = [];
+    const params = new URLSearchParams({
+      country,
+      bn: String(bn),
+      dn: String(dn),
+      kMin: "5",
+    });
 
     try {
-      for (let i = 0; i < allAnchors.length; i++) {
-        if (controller.signal.aborted) {
-          setStatus("cancelled");
-          return;
+      const resp = await fetch(`/api/twilio/search?${params.toString()}`, {
+        signal: controller.signal,
+        headers: { Accept: "text/event-stream" },
+      });
+
+      if (!resp.ok) {
+        let msg = `HTTP ${resp.status}`;
+        try {
+          const body = await resp.json();
+          if (body?.error) msg = body.error;
+          else if (body?.message) msg = body.message;
+        } catch {
+          // ignore; keep HTTP-status fallback
         }
-
-        setCurrentAnchor(allAnchors[i]);
-
-        const params = new URLSearchParams({
-          country,
-          contains: allAnchors[i],
-          pageSize: String(PAGE_SIZE),
-        });
-
-        const resp = await fetch(`/api/twilio?${params.toString()}`, {
-          signal: controller.signal,
-        });
-        if (!resp.ok) {
-          const body = await resp.json().catch(() => ({}));
-          throw new Error(body.error || `HTTP ${resp.status}`);
-        }
-        const data = await resp.json();
-        const results: TwilioNumber[] = data.available_phone_numbers || [];
-
-        for (const r of results) {
-          if (!r.phone_number || seen.has(r.phone_number)) continue;
-          seen.set(r.phone_number, r);
-
-          const domestic = stripCountryCode(r.phone_number, country);
-          if (!/^\d+$/.test(domestic)) continue;
-          const s = scoreNumber(domestic, bn, dn);
-          if (s.bn_dn_pct < 0.5) continue;
-          if (s.digital_root !== bn && s.digital_root !== dn) continue;
-
-          found.push({ ...r, domestic, ...s });
-        }
-
-        setMatches(sortMatches(found));
-        setSeenCount(seen.size);
-        setProgress({ current: i + 1, total: allAnchors.length });
+        throw new Error(msg);
       }
-      setStatus("done");
+
+      if (!resp.body) {
+        throw new Error("Streaming not supported by this browser.");
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+
+      // SSE messages are separated by a blank line. Per the spec the
+      // separator can be "\n\n" or "\r\n\r\n"; normalize CRLFs first.
+      while (true) {
+        if (controller.signal.aborted) break;
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        buf = buf.replace(/\r\n/g, "\n");
+
+        let idx;
+        while ((idx = buf.indexOf("\n\n")) !== -1) {
+          const raw = buf.slice(0, idx);
+          buf = buf.slice(idx + 2);
+          if (raw.length > 0) handleSseMessage(raw);
+        }
+      }
+
+      // Flush trailing message if the stream closed without a final blank line.
+      const tail = buf.trim();
+      if (tail.length > 0) handleSseMessage(tail);
+
+      flushNow();
+      // Only mark done if the stream ended without a `done`/`error`/abort event
+      // having already moved us out of "searching".
+      setStatus((prev) => (prev === "searching" ? "done" : prev));
     } catch (e: unknown) {
       if (e instanceof Error && e.name === "AbortError") {
+        flushNow();
         setStatus("cancelled");
         return;
       }
       const msg = e instanceof Error ? e.message : String(e);
       setError(msg);
+      flushNow();
       setStatus("error");
     }
   }
@@ -129,7 +312,9 @@ export default function PhoneSearch() {
     abortRef.current?.abort();
   }
 
-  const pct = progress.total ? (progress.current / progress.total) * 100 : 0;
+  const pct = progress.queriesPlanned
+    ? (progress.queriesDone / progress.queriesPlanned) * 100
+    : 0;
 
   const barColor =
     status === "error"
@@ -140,13 +325,27 @@ export default function PhoneSearch() {
       ? "bg-[#7A8B5C]"
       : "bg-gradient-to-r from-[#E97724] to-[#C9A961]";
 
+  const numberLength = meta?.numberLength ?? 0;
+  const kMin = meta?.kMin ?? 5;
+
   const statusLabel: React.ReactNode =
     status === "searching"
-      ? currentAnchor
+      ? kAnnounce !== null
         ? (
           <>
-            Trying numbers containing{" "}
-            <code style={{ fontFamily: "var(--font-mono)" }} className="tabular-nums">{currentAnchor}</code>
+            k = <code style={{ fontFamily: "var(--font-mono)" }} className="tabular-nums">{numberLength || kAnnounce}</code>{" "}
+            placements (rarest first) — k ={" "}
+            <code style={{ fontFamily: "var(--font-mono)" }} className="tabular-nums">{kAnnounce}</code>
+          </>
+        )
+        : progress.queriesPlanned > 0
+        ? (
+          <>
+            Searching k ={" "}
+            <code style={{ fontFamily: "var(--font-mono)" }} className="tabular-nums">{progress.currentK}</code>{" "}
+            placements ·{" "}
+            <span className="tabular-nums">{progress.queriesDone}</span> of{" "}
+            <span className="tabular-nums">{progress.queriesPlanned}</span>
           </>
         )
         : "Preparing search…"
@@ -249,15 +448,17 @@ export default function PhoneSearch() {
               <span className="text-[#2A2A2A] font-medium flex items-center min-w-0">
                 <span className="truncate">{statusLabel}</span>
                 {status === "searching" && (
-                  <Tooltip label="Anchor">
-                    An anchor is a short digit pattern built from your Mulank ({bn}) and
-                    Bhagyank ({dn}). Available numbers containing it are then fetched.
+                  <Tooltip label="k">
+                    k is the number of digits guaranteed to be Mulank ({bn}) or
+                    Bhagyank ({dn}). We start at k ={" "}
+                    {numberLength || "the full number length"} (rarest matches)
+                    and broaden down to k = {kMin}.
                   </Tooltip>
                 )}
               </span>
             </div>
             <div className="text-[#6B6B6B] tabular-nums text-xs whitespace-nowrap pl-4 sm:pl-0 self-end sm:self-auto">
-              {seenCount} seen ·{" "}
+              {progress.seenCount} seen ·{" "}
               <span className="text-[#B05818] font-semibold">{matches.length} matches</span>
             </div>
           </div>
@@ -269,9 +470,9 @@ export default function PhoneSearch() {
           </div>
           {status === "searching" && (
             <p className="text-[11px] text-[#6B6B6B] leading-snug max-w-[60ch]">
-              Anchors are digit patterns of length 5 to 2 made from your Mulank and
-              Bhagyank. We sweep from longest to shortest so the rarest, strongest
-              matches surface first.
+              k is how many digits are guaranteed to be your Mulank or Bhagyank.
+              We sweep from the largest k (rarest, strongest matches) down to
+              the floor so the most resonant numbers surface first.
             </p>
           )}
           {error && (

@@ -2,16 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { nameNumber } from "@/lib/numerology";
-import Tooltip from "./Tooltip";
-
-function masterAt(total: number): number | null {
-  let n = total;
-  while (n > 9) {
-    if (n === 11 || n === 22 || n === 33) return n;
-    n = String(n).split("").reduce((s, d) => s + Number(d), 0);
-  }
-  return null;
-}
 
 export default function NameCalculator() {
   const [name, setName] = useState("");
@@ -27,8 +17,6 @@ export default function NameCalculator() {
       perWord: words.map((w) => ({ word: w, ...nameNumber(w) })),
     };
   }, [name]);
-
-  const totalMaster = result ? masterAt(result.total.total) : null;
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -70,24 +58,8 @@ export default function NameCalculator() {
             </div>
           </div>
 
-          {totalMaster && (
-            <div className="bg-[#FBF0E0] border border-[#EADFCB] rounded-xl px-3 sm:px-4 py-3 flex items-start gap-3">
-              <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
-                <span className="master-badge">Master {totalMaster}</span>
-                <span className="text-xs text-[#6B6B6B] leading-snug">
-                  Reduces to {result.total.root}, but carries {totalMaster}’s heightened vibration.
-                </span>
-              </div>
-              <Tooltip label="Master Numbers">
-                In numerology, 11, 22, and 33 are master numbers — kept unreduced
-                because they are believed to amplify the qualities of their reduced root.
-              </Tooltip>
-            </div>
-          )}
-
           <div className="space-y-3">
             {result.perWord.map((w, i) => {
-              const wordMaster = masterAt(w.total);
               return (
                 <div
                   key={i}
@@ -98,9 +70,6 @@ export default function NameCalculator() {
                       <div className="font-serif text-lg sm:text-xl text-[#2A2A2A] break-words">
                         {w.word}
                       </div>
-                      {wordMaster && (
-                        <span className="master-badge">Master {wordMaster}</span>
-                      )}
                     </div>
                     <div className="flex items-baseline gap-2.5 sm:gap-3 whitespace-nowrap shrink-0">
                       <div className="text-xs text-[#6B6B6B] tabular-nums">

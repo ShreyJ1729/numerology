@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Source_Serif_4, Inter } from "next/font/google";
 import PageMandala from "@/components/PageMandala";
+import StudioShell from "@/components/StudioShell";
 import "./globals.css";
 
 const sourceSerif = Source_Serif_4({
@@ -20,8 +21,8 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
   ?? (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`)
   ?? "http://localhost:3000";
 
-const title = "Art of Numerology — Vedic name and phone numerology";
-const description = "Compute your Mulank and Bhagyank, derive your Vedic name number, and find phone numbers whose digits align with your roots.";
+const title = "Numerology Studio — Vedic numerology tools and education";
+const description = "A studio for Vedic numerology: compute your name number, find phone numbers aligned to your Mulank and Bhagyank, and learn what the digits mean.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -29,7 +30,7 @@ export const metadata: Metadata = {
   description,
   openGraph: {
     type: "website",
-    siteName: "Art of Numerology",
+    siteName: "Numerology Studio",
     title,
     description,
     url: "/",
@@ -56,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="page-mandala-bg" aria-hidden="true">
           <PageMandala />
         </div>
-        {children}
+        <StudioShell>{children}</StudioShell>
       </body>
     </html>
   );
