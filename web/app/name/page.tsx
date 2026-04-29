@@ -14,7 +14,7 @@ export default function NamePage() {
         title="Name number"
         lede={
           <>
-            Every letter carries a digit; every name reduces to a single root.
+            Every letter represents a digit; every name reduces to a single root.
             Type a name to see its breakdown — per word, per letter, with the
             running sum and its single-digit reduction.
           </>

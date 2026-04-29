@@ -802,6 +802,242 @@ input[type="date"].input-aol {
   margin-bottom: 1rem;
 }
 
+/* ─── Essay (long-form with marginalia) ─────────────────────
+   Tufte-lineage layout: a narrow main column with sidenotes
+   floated into a right-hand gutter on wide screens, collapsing
+   to inline rule-bordered asides on narrow screens. */
+.essay {
+  --essay-measure: 58ch;
+  --essay-margin-w: 220px;
+  --essay-margin-gap: 2rem;
+  max-width: var(--essay-measure);
+  margin: 0 auto;
+  color: #2A2A2A;
+  font-size: 1.0625rem;
+  line-height: 1.62;
+}
+.essay p { margin: 0; }
+.essay p + p { margin-top: 1.05em; }
+
+/* On wide viewports, anchor the column to the left and reserve
+   the right gutter for sidenotes via padding-right. Sidenotes
+   then float into that reservation with a negative margin. */
+@media (min-width: 1200px) {
+  .essay {
+    max-width: calc(var(--essay-measure) + var(--essay-margin-gap) + var(--essay-margin-w));
+    margin-left: 0;
+    margin-right: auto;
+    padding-right: calc(var(--essay-margin-gap) + var(--essay-margin-w));
+    position: relative;
+  }
+}
+
+.essay-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #B05818;
+}
+.essay-date {
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  color: #8C7A5C;
+  font-variant: small-caps;
+  margin-top: 0.4rem;
+}
+.essay-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.85rem, 4vw, 2.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.018em;
+  color: #2A2A2A;
+  margin: 0.7rem 0 0;
+  text-wrap: balance;
+}
+.essay-lede {
+  font-family: var(--font-serif);
+  font-size: 1.18rem;
+  line-height: 1.5;
+  color: #4A4A4A;
+  margin-top: 1.35rem;
+  text-wrap: pretty;
+}
+.essay-skip {
+  display: inline-block;
+  margin-top: 1.1rem;
+  font-size: 0.82rem;
+  color: #B05818;
+  text-decoration: none;
+  border-bottom: 1px dotted #C9A961;
+  padding-bottom: 1px;
+}
+.essay-skip:hover {
+  color: #8B2C2C;
+  border-bottom-color: #8B2C2C;
+}
+
+.essay-body { margin-top: 2.25rem; }
+
+.essay-dropcap::first-letter {
+  float: left;
+  font-family: var(--font-serif);
+  font-size: 3.5rem;
+  line-height: 0.86;
+  margin: 0.18em 0.6rem -0.05em 0;
+  color: #B05818;
+  font-weight: 500;
+}
+
+.essay-section { margin-top: 2.75rem; }
+.essay-section-mark {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  color: #8C7A5C;
+  margin-bottom: 0.45rem;
+}
+.essay-pilcrow {
+  color: #B05818;
+  margin-right: 0.4rem;
+  font-weight: 500;
+}
+.essay-section-title {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  line-height: 1.18;
+  letter-spacing: -0.012em;
+  margin: 0 0 1rem;
+  color: #2A2A2A;
+  text-wrap: balance;
+}
+
+.essay em { font-style: italic; }
+.essay strong { font-weight: 600; }
+.essay a {
+  color: #B05818;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.essay a:hover { color: #8B2C2C; }
+
+.essay ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.85rem 0;
+}
+.essay ul li {
+  padding-left: 1.4rem;
+  position: relative;
+  margin: 0.5rem 0;
+}
+.essay ul li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: #B05818;
+}
+
+/* Figure: an embedded tool that reads as evidence in the prose. */
+.essay-figure { margin: 1.85rem 0 1.4rem; }
+.essay-figure-frame {
+  background: #FFFFFF;
+  border: 1px solid var(--color-rule);
+  border-radius: 1rem;
+  padding: 1.4rem 1.25rem;
+}
+@media (min-width: 640px) {
+  .essay-figure-frame { padding: 1.75rem 1.5rem; }
+}
+.essay-figure-caption {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #6B6B6B;
+  margin-top: 0.95rem;
+  padding-left: 0.1rem;
+  font-style: italic;
+}
+.essay-figure-caption-num {
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 500;
+  color: #2A2A2A;
+  margin-right: 0.4rem;
+}
+
+/* Marginalia: inline aside on narrow screens, true sidenote on wide. */
+.essay-margin {
+  display: block;
+  border-left: 2px solid #C9A961;
+  padding-left: 0.95rem;
+  margin: 1.05rem 0 1.2rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #6B6B6B;
+  font-family: var(--font-sans);
+}
+.essay-margin em { font-style: italic; }
+.essay-margin-num {
+  font-family: var(--font-serif);
+  color: #B05818;
+  font-weight: 600;
+  margin-right: 0.35rem;
+}
+
+@media (min-width: 1200px) {
+  .essay-margin {
+    float: right;
+    clear: right;
+    width: var(--essay-margin-w);
+    margin: 0.4em calc(-1 * (var(--essay-margin-w) + var(--essay-margin-gap))) 0.4em 0;
+    border-left: 0;
+    padding-left: 0;
+    font-size: 0.84rem;
+    line-height: 1.5;
+  }
+  .essay-margin-num {
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: block;
+    margin: 0 0 0.2rem;
+    color: #B05818;
+  }
+}
+
+/* Spacer + signature */
+.essay-end-mark {
+  display: block;
+  font-family: var(--font-serif);
+  color: #B05818;
+  letter-spacing: 0.5em;
+  margin-top: 3rem;
+  font-size: 1rem;
+}
+.essay-signature {
+  margin-top: 1.6rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--color-rule);
+  font-size: 0.92rem;
+  color: #6B6B6B;
+  line-height: 1.6;
+}
+.essay-signature-name {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: #2A2A2A;
+}
+.essay-signature-revised {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  color: #8C7A5C;
+  font-variant: small-caps;
+}
+
 /* ─── Studio backdrop tweak ──────────────────────────────── */
 /* Push the page mandala behind the sidebar on desktop so it
    only registers in the main content. */
