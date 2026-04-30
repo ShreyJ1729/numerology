@@ -51,7 +51,7 @@ export default function StudioShell({ children }: { children: React.ReactNode })
             </svg>
           </button>
           <span className="font-serif text-[1.05rem] leading-none tracking-tight text-[#2A2A2A] whitespace-nowrap lg:hidden">
-            Numerology <span className="text-[#B05818]">Studio</span>
+            Numerology
           </span>
           <div className="ml-auto" />
         </header>

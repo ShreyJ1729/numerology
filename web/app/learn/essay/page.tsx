@@ -3,7 +3,7 @@ import { StudioPage } from "@/components/StudioPage";
 import NameCalculator from "@/components/NameCalculator";
 
 export const metadata = {
-  title: "A name reduced to a single digit — Numerology Studio",
+  title: "A name reduced to a single digit — Numerology",
   description:
     "An essay on ankaśāstram: how a name and a date become numbers, and what the tradition reads in the result.",
 };
@@ -13,7 +13,7 @@ export default function Page() {
     <StudioPage>
       <article className="essay">
         <header>
-          <div className="essay-eyebrow">Studio · An essay</div>
+          <div className="essay-eyebrow">An essay</div>
           <h1 className="essay-title">A name reduced to a single digit</h1>
           <div className="essay-date">29 April 2026 · 8 minute read</div>
           <p className="essay-lede">
@@ -200,9 +200,9 @@ export default function Page() {
 
             <p>
               Two essays follow this one:{" "}
-              <Link href="/learn/numbers">Mulank &amp; Bhagyank</Link>{" "}
+              <Link href="/learn/digits">Digits</Link>{" "}
               (the digits, one through nine, what each carries) and{" "}
-              <Link href="/learn/compound-names">Compound names</Link>{" "}
+              <Link href="/learn/case-studies">Case studies</Link>{" "}
               (what to do when &ldquo;Shrey&rdquo; reduces differently from
               &ldquo;Shrey Joshi&rdquo;). Read them in any order; the
               operation in §1 is the only thing they share.
@@ -230,3 +230,61 @@ export default function Page() {
     </StudioPage>
   );
 }
+
+/*
+  Safekeeping — previously rendered at the top of the home page alongside the
+  ankaśāstram definition figure. Kept here in case it finds a home later.
+
+  <figure className="term-quote">
+    <div>
+      <span className="term-quote-word">ankaśāstram</span>
+      <span className="term-quote-pron">/ ang-kuh-SHAAS-truhm /</span>
+    </div>
+    <span className="term-quote-devanagari" lang="sa">अङ्कशास्त्रम्</span>
+    <p className="term-quote-def">
+      <em>noun.</em> The science of numbers; the Vedic discipline of reading
+      a life through the single-digit roots of its names and dates.
+    </p>
+  </figure>
+
+  <section className="prose">
+    <p>
+      Every name carries a number; every birthday reduces to one. Your{" "}
+      <em>Mulank</em> is the root of your day of birth — a single digit
+      between one and nine. Your <em>Bhagyank</em> is the root of the whole
+      date. Together they describe the shape of a life: the nature you
+      were born with and the path it tends to follow.
+    </p>
+  </section>
+
+  <section>
+    <h2 className="font-serif text-xl text-[#2A2A2A] mb-3">Sanskrit roots</h2>
+    <p className="prose-narrow text-[#6B6B6B] text-[0.95rem] mb-4">
+      The vocabulary, read literally. <em>aṅka</em> (अङ्क) means
+      &ldquo;number&rdquo;; the rest is what the number is <em>of</em>.
+    </p>
+    <dl className="term-list">
+      <div className="term-row">
+        <dt><em>ankaśāstra</em> </dt>
+        <dd>
+          <em>aṅka</em> (अङ्क, number) + <em>śāstra</em> (शास्त्र,
+          treatise, science) — the science of numbers.
+        </dd>
+      </div>
+      <div className="term-row">
+        <dt><em>mūlāṅka</em> </dt>
+        <dd>
+          <em>mūla</em> (मूल, root) + <em>aṅka</em> (अङ्क) — the root
+          number, taken from the day of birth.
+        </dd>
+      </div>
+      <div className="term-row">
+        <dt><em>bhāgyāṅka</em> </dt>
+        <dd>
+          <em>bhāgya</em> (भाग्य, fortune, share, destiny) + <em>aṅka</em>{" "}
+          (अङ्क) — the fortune number, taken from the full date.
+        </dd>
+      </div>
+    </dl>
+  </section>
+*/

@@ -22,20 +22,11 @@ export function StudioPageHeader({
   );
 }
 
-export function ComingSoonStub({
-  description,
-  bullets,
-}: {
-  description: ReactNode;
-  bullets: ReactNode[];
-}) {
+export function ComingSoonStub({ bullets }: { bullets: ReactNode[] }) {
   return (
     <div className="stub-card">
       <span className="stub-tag">Coming soon</span>
-      <p className="prose" style={{ marginTop: 0 }}>
-        {description}
-      </p>
-      <h3 style={{ marginTop: "1.25rem" }}>What this section will hold</h3>
+      <h3>What this section will hold</h3>
       <ul>
         {bullets.map((b, i) => (
           <li key={i}>{b}</li>

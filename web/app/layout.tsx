@@ -21,8 +21,8 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
   ?? (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`)
   ?? "http://localhost:3000";
 
-const title = "Numerology Studio — Vedic numerology tools and education";
-const description = "A studio for Vedic numerology: compute your name number, find phone numbers aligned to your Mulank and Bhagyank, and learn what the digits mean.";
+const title = "Numerology — Vedic numerology tools";
+const description = "Vedic numerology tools: name and phone numbers, vehicle plates, pricing, colors, and timing.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   description,
   openGraph: {
     type: "website",
-    siteName: "Numerology Studio",
+    siteName: "Numerology",
     title,
     description,
     url: "/",

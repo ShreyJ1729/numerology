@@ -25,14 +25,12 @@ export default function Sidebar({ mobile = false, open = false, onNavigate }: Pr
         href="/"
         className="studio-brand"
         onClick={onNavigate}
-        aria-label="Numerology Studio home"
+        aria-label="Numerology home"
       >
         <span className="studio-brand-mark" aria-hidden="true">
           <MandalaMark />
         </span>
-        <span>
-          Numerology <span className="text-[#B05818]">Studio</span>
-        </span>
+        <span>Numerology</span>
       </Link>
 
       <nav className="studio-nav">

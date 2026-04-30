@@ -28,7 +28,7 @@ export default function NameCalculator() {
           id="name-input"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Shrey Joshi"
+          placeholder="Enter a name to compute its number."
           autoComplete="name"
           autoCapitalize="words"
           autoCorrect="off"
@@ -99,11 +99,7 @@ export default function NameCalculator() {
             })}
           </div>
         </div>
-      ) : (
-        <div className="py-8 sm:py-10 text-[#6B6B6B] text-sm">
-          Enter a name to compute its number.
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }

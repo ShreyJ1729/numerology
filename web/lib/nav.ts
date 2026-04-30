@@ -11,40 +11,22 @@ export type NavGroup = {
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    label: "Calculate",
-    items: [
-      { href: "/name", label: "Name number" },
-      { href: "/phone", label: "Phone numbers" },
-    ],
-  },
-  {
     label: "Learn",
     items: [
       { href: "/learn/overview", label: "Overview", soon: true },
-      { href: "/learn/numbers", label: "Mulank & Bhagyank", soon: true },
-      { href: "/learn/compound-names", label: "Compound names", soon: true },
+      { href: "/learn/digits", label: "Digits", soon: true },
+      { href: "/learn/case-studies", label: "Case studies", soon: true },
     ],
   },
   {
-    label: "Timing",
+    label: "Calculate",
     items: [
-      { href: "/timing/days", label: "Days of the week", soon: true },
-      { href: "/timing/dates", label: "Dates of the month", soon: true },
+      { href: "/name", label: "Name" },
+      { href: "/phone", label: "Phone" },
+      { href: "/vehicles", label: "Vehicle plate", soon: true },
+      { href: "/pricing", label: "Pricing", soon: true },
+      { href: "/colors", label: "Colors", soon: true },
+      { href: "/timing", label: "Timing", soon: true },
     ],
-  },
-  {
-    label: "Palette",
-    items: [{ href: "/colors", label: "Colors", soon: true }],
-  },
-  {
-    label: "Commerce",
-    items: [
-      { href: "/commerce/pricing", label: "Pricing", soon: true },
-      { href: "/commerce/negotiation", label: "Negotiation", soon: true },
-    ],
-  },
-  {
-    label: "Vehicles",
-    items: [{ href: "/vehicles", label: "Vehicle numbers", soon: true }],
   },
 ];
